@@ -22,6 +22,31 @@ const API_CODES = {
 }
 
 
+/* queries.sqlite_add_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+    console.log(arguments);
+});
+
+queries.sqlite_check_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+    console.log(arguments);
+});
+
+queries.sqlite_get_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+    console.log(arguments);
+}) */
+
+/* queries.sqlite_submit_vote('18587efa-84d3-4db1-b1c2-fa65d41e974a', 2, function(){
+    console.log(arguments);
+}); */
+
+/* queries.sqlite_update_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+    console.log(arguments);
+}); */
+
+queries.sqlite_read_daily_stats(2, function(){
+    console.log(JSON.stringify(arguments));
+});
+
+
 app.get('/covid/uuid/:guid', function(req, res){
     //Cadastra o dispositivo.
     if (!tools.is_uuid(req.params.guid)){
