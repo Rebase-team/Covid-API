@@ -21,6 +21,8 @@ const API_CODES = {
     VOTE_INVALID:           5
 }
 
+//api covid
+//https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/pe
 
 /* queries.sqlite_add_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
     console.log(arguments);
@@ -34,7 +36,7 @@ queries.sqlite_get_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(
     console.log(arguments);
 }) */
 
-/* queries.sqlite_submit_vote('18587efa-84d3-4db1-b1c2-fa65d41e974a', 2, function(){
+/* queries.sqlite_submit_vote('18587efa-84d3-4db1-b1c2-fa65d41e974a', 4, function(){
     console.log(arguments);
 }); */
 
@@ -42,10 +44,17 @@ queries.sqlite_get_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(
     console.log(arguments);
 }); */
 
-queries.sqlite_read_daily_stats(2, function(){
-    console.log(JSON.stringify(arguments));
-});
+//queries.sqlite_read_daily_stats(2, function(){
+//    console.log(JSON.stringify(arguments) + "\n");
+//});
 
+//queries.sqlite_read_current_stats(function(){
+//    console.log(JSON.stringify(arguments));
+//});
+
+queries.sqlite_submit_coords('18587efa-84d3-4db1-b1c2-fa65d41e974a', -53.656464, 39.56645645, true, function(bcreated){
+    console.log(bcreated)
+})
 
 app.get('/covid/uuid/:guid', function(req, res){
     //Cadastra o dispositivo.
@@ -53,24 +62,7 @@ app.get('/covid/uuid/:guid', function(req, res){
         tools.dump(res, API_CODES.UUID_INVALID, {});
     }
     else{
-        db.serialize(function () {
-            db.each(`SELECT COUNT(*) AS AccessCount FROM access_guids WHERE guid=? LIMIT 1;`, [req.params.guid], function (err, row) {
-                if (row.AccessCount > 0) {
-                    tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
-                }
-                else {
-                    let query = db.prepare(`INSERT INTO access_guids (guid, last_access) VALUES (?, DATETIME('now', 'localtime'));`).run(req.params.guid);
-                    query.finalize((err) => {
-                        if (typeof err != "undefined") {
-                            tools.dump(res, API_CODES.UUID_FAILED, { uuid: req.params.guid });
-                        }
-                        else{
-                            tools.dump(res, API_CODES.UUID_STORED, { uuid: req.params.guid });
-                        }
-                    });
-                }
-            });
-        });
+        
     }
 });
 
@@ -105,5 +97,5 @@ app.get('/covid/stats/:guid', function(req, res){
 
 
 app.listen(14400, function(){
-    console.log('Covid App running on port 14400.')
+    console.log('Covid App running on port 14400.');
 });
