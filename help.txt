@@ -1,0 +1,40 @@
+//queries.sqlite_add_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+//    console.log(arguments);
+//});
+
+//queries.sqlite_check_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+//    console.log(arguments);
+//});
+
+//queries.sqlite_get_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+//    console.log(arguments);
+//});
+
+//queries.sqlite_submit_vote('18587efa-84d3-4db1-b1c2-fa65d41e974a', 4, function(){
+//    console.log(arguments);
+//});
+
+//queries.sqlite_update_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
+//    console.log(arguments);
+//});
+
+//queries.sqlite_read_daily_stats(2, function(){
+//    console.log(JSON.stringify(arguments) + "\n");
+//});
+
+//queries.sqlite_read_current_stats(function(){
+//    console.log(JSON.stringify(arguments));
+//});
+
+//queries.sqlite_submit_coords('18587efa-84d3-4db1-b1c2-fa65d41e974a', -53.656464, 39.56645645, true, function(bcreated){
+//    console.log(bcreated);
+//});
+
+
+//tracker.track_reverse_address(-8.8824197, -36.5039861, geo_reserve_keys[geo_round_robin++ % geo_reserve_keys.length], function(data){
+//    console.log(data);
+//});
+
+//covid.covid_api_available_reports(function(data){
+//    console.log(data);
+//})

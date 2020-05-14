@@ -6,96 +6,126 @@ const colors = require('colors');
 
 const queries = require('./queries');
 const tools = require('./tools');
+const tracker = require('./tracker');
+const covid = require('./covid');
 
 const app = express();
 
-app.use(Waf.WafMiddleware(wafrules.DefaultSettings));
 app.use(Waf.WafSecurityPolicy());
 
 
 const API_CODES = {
-    UUID_STORED:            1,
-    UUID_INVALID:           2,
-    UUID_ALREADY_STORED:    3,
-    UUID_FAILED:            4,
-    VOTE_INVALID:           5
+  UUID_STORED:          1,
+  UUID_INVALID:         2,
+  UUID_ALREADY_STORED:  3,
+  UUID_FAILED:          4,
+  VOTE_INVALID:         5,
+  TOO_MANY_VOTES:       6,
+  ERROR_WHEN_VOTING:    7,
+  VOTE_SUBMITED:        8
 }
 
-//api covid
-//https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/pe
+var geo_round_robin = 0;
+var geo_reserve_keys = [
+  'jyNJ0AXqO8HzGms8QuWpwij8IK6ak7YI',
+  'yKDN6MYgXuHDKoDAAqgS5RPHIiNwrzLZ',
+  'lfEB4rDhs08pNsqbd5Hu3SNUwSzdj7fA',
+  'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
+];
 
-/* queries.sqlite_add_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
-    console.log(arguments);
-});
-
-queries.sqlite_check_uuid('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
-    console.log(arguments);
-});
-
-queries.sqlite_get_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
-    console.log(arguments);
-}) */
-
-/* queries.sqlite_submit_vote('18587efa-84d3-4db1-b1c2-fa65d41e974a', 4, function(){
-    console.log(arguments);
-}); */
-
-/* queries.sqlite_update_last_access('18587efa-84d3-4db1-b1c2-fa65d41e974a', function(){
-    console.log(arguments);
-}); */
-
-//queries.sqlite_read_daily_stats(2, function(){
-//    console.log(JSON.stringify(arguments) + "\n");
-//});
-
-//queries.sqlite_read_current_stats(function(){
-//    console.log(JSON.stringify(arguments));
-//});
-
-queries.sqlite_submit_coords('18587efa-84d3-4db1-b1c2-fa65d41e974a', -53.656464, 39.56645645, true, function(bcreated){
-    console.log(bcreated)
-})
-
-app.get('/covid/uuid/:guid', function(req, res){
-    //Cadastra o dispositivo.
-    if (!tools.is_uuid(req.params.guid)){
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-    }
-    else{
-        
-    }
-});
-
-app.post('/covid/vote/:guid/:number', function(req, res){
-    //Realiza a votação
-    if (!tools.is_uuid(req.params.guid)){
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-    }
-    else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)){
-        tools.dump(res, API_CODES.VOTE_INVALID, {});
-    }
-    else{
-        let voteNum = Number(req.params.number);
-        if ((voteNum < 1) || (voteNum > 4)){
-            tools.dump(res, API_CODES.VOTE_INVALID, {});
+app.put('/covid/uuid/:guid', function (req, res) {
+  //Cadastra o dispositivo.
+  if (!tools.is_uuid(req.params.guid)) {
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+  else {
+    queries.sqlite_serialize(function () {
+      queries.sqlite_check_uuid(req.params.guid, function (bexists) {
+        if (!bexists) {
+          queries.sqlite_add_uuid(req.params.guid, function (bcreated) {
+            tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), null);
+          });
         }
-        else{
-            
+        else {
+          tools.dump(res, API_CODES.UUID_ALREADY_STORED, null);
         }
+      });
+    });
+  }
+});
+
+app.post('/covid/submit/:guid/:number', function (req, res) {
+  //Realiza a votação
+  if (!tools.is_uuid(req.params.guid)) {
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+  else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)) {
+    tools.dump(res, API_CODES.VOTE_INVALID, {});
+  }
+  else {
+    let voteNum = Number(req.params.number);
+    if ((voteNum < 1) || (voteNum > 4)) {
+      tools.dump(res, API_CODES.VOTE_INVALID, {});
     }
+    else {
+      queries.sqlite_serialize(function () {
+        queries.sqlite_check_uuid(req.params.guid, function (bexists) {
+          if (bexists) {
+            queries.sqlite_get_last_vote_date(req.params.guid, function (last_vote) {
+              if (last_vote != null) {
+                let access_date = new Date(last_vote);
+                if ((new Date()).getTime() - access_date.getTime() >= 3600000) {
+                  //Decorrida uma hora, pode votar.
+                  queries.sqlite_submit_vote(req.params.guid, voteNum, function (bsubmited) {
+                    tools.dump(res, (bsubmited ? API_CODES.VOTE_SUBMITED : API_CODES.ERROR_WHEN_VOTING), null);
+                  });
+                }
+                else {
+                  //Não decorreu uma hora, não pode votar novamente.
+                  tools.dump(res, API_CODES.TOO_MANY_VOTES, null);
+                }
+              }
+              else {
+                queries.sqlite_submit_vote(req.params.guid, voteNum, function (bsubmited) {
+                  tools.dump(res, (bsubmited ? API_CODES.VOTE_SUBMITED : API_CODES.ERROR_WHEN_VOTING), null);
+                });
+              }
+            });
+          }
+          else {
+            tools.dump(res, API_CODES.UUID_INVALID, null);
+          }
+        });
+      });
+    }
+  }
 });
 
-app.get('/covid/average/:day/:guid', function(req, res){
-    //Retorna a média de votos da última hora.
-    res.json({teste: 2}).end();
+app.get('/covid/average/:guid/:day', function (req, res) {
+  //Retorna a média de votos da última hora.
+  res.json({ teste: 2 }).end();
 });
 
-app.get('/covid/stats/:guid', function(req, res){
-    //Retorna os horários de pico.
-    res.json({teste: 2}).end();
+app.get('/covid/today/:guid/garanhuns', function (req, res){
+  //Retorna a média de votos do dia atual.
+  res.json({ teste: 2 }).end();
+});
+
+app.get('/covid/stats/:guid', function (req, res) {
+  //Retorna os horários de pico.
+  res.json({ teste: 2 }).end();
+});
+
+app.put('/covid/track/:guid/:lat/:lng', function (req, res) {
+  //Atualiza as coordenadas do dispositivo no nosso banco de dados.
+  res.json({ teste: 2 }).end();
+});
+
+app.get('/covid/track/:guid/position', function(req, res){
+  //Retorna a posição, cep, rua, bairro, cidade, estado referente ao uuid do dispositivo rastreado.
 });
 
 
-app.listen(14400, function(){
-    console.log('Covid App running on port 14400.');
+app.listen(14400, function () {
+  console.log('Covid App running on port 14400.');
 });
