@@ -121,9 +121,9 @@ app.get('/covid/average/:guid/:day', function (req, res) {
     tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
-//
+//DONE
 app.get('/covid/today/:guid/garanhuns', function (req, res){
-  //Retorna a média de votos do dia atual.
+  //Retorna a média de votos do dia atual e horários de pico e mínimo.
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
       if (uid_exist){
@@ -134,21 +134,10 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null);
       }
-    })
+    });
   }
-});
-//
-app.get('/covid/stats/:guid', function (req, res) {
-  //Retorna os horários de pico.
-  if(tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
-      if (uid_exist) {
-        //Queries
-      } 
-      else {
-        tools.dump(res, API_CODES.UUID_INVALID, null)
-      }
-    })
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
 //
@@ -163,7 +152,10 @@ app.put('/covid/track/:guid/:lat/:lng', function (req, res) {
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null)
       }
-    })
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
 //
@@ -178,7 +170,10 @@ app.get('/covid/track/:guid/position', function(req, res){
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null)
       }
-    })
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
 

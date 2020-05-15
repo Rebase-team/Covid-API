@@ -6,7 +6,7 @@ const axios = require('axios').default;
 
 /**
  * 
- * @param {function} pvoid_cb 
+ * @param {(data: any)=>void} pvoid_cb 
  */
 function covid_api_report_all_states(pvoid_cb){
     axios.get('https://covid19-brazil-api.now.sh/api/report/v1').then((resp) => { pvoid_cb(resp.data); }).catch((err) => { pvoid_cb(null); });
@@ -15,7 +15,7 @@ function covid_api_report_all_states(pvoid_cb){
 /**
  * 
  * @param {string} uf 
- * @param {function} pvoid_cb 
+ * @param {(data: any)=>void} pvoid_cb 
  */
 function covid_api_report_state(uf, pvoid_cb){
     axios.get(`https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/${uf}`).then((resp) => { pvoid_cb(resp.data); }).catch((err) => { pvoid_cb(null); });
@@ -23,7 +23,7 @@ function covid_api_report_state(uf, pvoid_cb){
 
 /**
  * 
- * @param {function} pvoid_cb 
+ * @param {(data: any)=>void} pvoid_cb 
  * @param {Date} date 
  */
 function covid_api_report_cases(date, pvoid_cb){
@@ -31,6 +31,10 @@ function covid_api_report_cases(date, pvoid_cb){
     axios.get(`https://covid19-brazil-api.now.sh/api/report/v1/brazil/${arr[2] + arr[1] + arr[0]}`).then((resp) => { pvoid_cb(resp.data); }).catch((err) => { pvoid_cb(null); });
 }
 
+/**
+ * 
+ * @param {(data: any)=>void} pvoid_cb 
+ */
 function covid_api_available_reports(pvoid_cb){
     axios.get('https://brasil.io/api/dataset/covid19/boletim/data/?format=json').then((response) => {
         let covid_data = [];
