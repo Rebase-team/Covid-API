@@ -128,11 +128,11 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
     queries.sqlite_check_uuid(req.params.guid, (exist) => {
       if (exist){
         queries.sqlite_read_current_stats((stats)=>{
-          tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, stats)
+          tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, stats);
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null)
+        tools.dump(res, API_CODES.UUID_INVALID, null);
       }
     })
   }
