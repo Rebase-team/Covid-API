@@ -28,6 +28,7 @@ const API_CODES = {
   ERROR_WHEN_UPDATE_USER_LOCATION:          11,
   ERROR_WHEN_RETURN_USER_LOCATION:          12,
   IS_TRACKING_PARAMS_INVALID:               13,
+  IS_TRAKING_SUCCESS_VALID:                 14
 }
 
 var geo_round_robin = 0;
