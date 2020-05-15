@@ -167,41 +167,50 @@ function sqlite_read_current_stats(pvoid_cb) {
     let Stats = {
       TotalVote: 0,
       NumberOfVotes: 0,
-      BiggerAgglomeration: { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-      SmallerAgglomeration: { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 }
+      BiggerAgglomeration:  { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+      SmallerAgglomeration: { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: null }
     }
     let BufferStats = {
       ScheduleStats: [
-        { Start: '00:00:00', End: '01:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '02:00:00', End: '03:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '04:00:00', End: '05:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '06:00:00', End: '07:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '08:00:00', End: '09:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '10:00:00', End: '11:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '12:00:00', End: '13:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '14:00:00', End: '15:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '16:00:00', End: '17:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '18:00:00', End: '19:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '20:00:00', End: '21:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
-        { Start: '22:00:00', End: '23:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER }
+        { Start: '00:00:00', End: '01:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '02:00:00', End: '03:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '04:00:00', End: '05:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '06:00:00', End: '07:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '08:00:00', End: '09:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '10:00:00', End: '11:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '12:00:00', End: '13:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '14:00:00', End: '15:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '16:00:00', End: '17:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '18:00:00', End: '19:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '20:00:00', End: '21:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null },
+        { Start: '22:00:00', End: '23:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: null }
       ]
     }
     for (let idx = 0; idx < BufferStats.ScheduleStats.length; idx++) {
-      db.each(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now', 'localtime') AND TIME(created_at) BETWEEN ? AND ?`, [BufferStats.ScheduleStats[idx].Start, BufferStats.ScheduleStats[idx].End], function (err, row) {
+      db.get(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now', 'localtime') AND TIME(created_at) BETWEEN ? AND ?`, [BufferStats.ScheduleStats[idx].Start, BufferStats.ScheduleStats[idx].End], function (err, row) {
         BufferStats.ScheduleStats[idx].TotalVote = row.TotalVote;
         BufferStats.ScheduleStats[idx].NumberOfVotes = row.NumberOfVotes;
         BufferStats.ScheduleStats[idx].Measure = (row.NumberOfVotes != 0 ? row.TotalVote / row.NumberOfVotes : 0);
-        if (BufferStats.ScheduleStats[idx].Measure < Stats.SmallerAgglomeration.Measure) {
-          Stats.SmallerAgglomeration = BufferStats.ScheduleStats[idx];
-        }
-        if (BufferStats.ScheduleStats[idx].Measure > Stats.BiggerAgglomeration.Measure) {
-          Stats.BiggerAgglomeration = BufferStats.ScheduleStats[idx];
+        if (BufferStats.ScheduleStats[idx].NumberOfVotes > 0){
+          if ((Stats.SmallerAgglomeration.Measure == null) || (BufferStats.ScheduleStats[idx].Measure < Stats.SmallerAgglomeration.Measure)) {
+            Stats.SmallerAgglomeration = BufferStats.ScheduleStats[idx];
+          }
+          if ((Stats.BiggerAgglomeration.Measure == null) || (BufferStats.ScheduleStats[idx].Measure > Stats.BiggerAgglomeration.Measure)) {
+            Stats.BiggerAgglomeration = BufferStats.ScheduleStats[idx];
+          }
         }
       });
     }
     db.get(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now', 'localtime')`, [], function (err, row) {
+      if (Stats.BiggerAgglomeration.Measure == null){
+        Stats.BiggerAgglomeration.Measure = 0;
+      }
+      if (Stats.SmallerAgglomeration.Measure == null){
+        Stats.SmallerAgglomeration.Measure = 0;
+      }
       Stats.TotalVote = row.TotalVote;
       Stats.NumberOfVotes = row.NumberOfVotes;
+      Stats.Average = (row.NumberOfVotes != 0 ? row.TotalVote / row.NumberOfVotes : 0);
       //pvoid_cb(stats_object)
       pvoid_cb(Stats);
     });

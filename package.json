@@ -1,5 +1,5 @@
 {
-  "name": "garanhuns-covid",
+  "name": "covid-api",
   "version": "0.0.1",
   "description": "Servidor web do aplicativo Garanhuns contra Covid.",
   "main": "index.js",

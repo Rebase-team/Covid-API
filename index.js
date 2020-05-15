@@ -108,11 +108,9 @@ app.get('/covid/average/:guid/:day', function (req, res) {
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (exist) => {
       if(exist){
-        let objs = []
         queries.sqlite_read_daily_stats(req.params.day, (statistic) => {
-          statistic.ScheduleStats.forEach( obj => {objs.push(obj)} )
-          tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, objs )
-        })
+          tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, statistic.ScheduleStats )
+        });
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null);
@@ -124,15 +122,13 @@ app.get('/covid/average/:guid/:day', function (req, res) {
   }
 });
 //
-
 app.get('/covid/today/:guid/garanhuns', function (req, res){
   //Retorna a média de votos do dia atual.
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (exist) => {
-      if (exist) {
-        queries.sqlite_read_current_stats((statistics)=>{
-          statistics.Average = (statistics.NumberOfVotes != 0 ? statistics.TotalVote / statistics.NumberOfVotes : 0);
-          tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, statistics)
+      if (exist){
+        queries.sqlite_read_current_stats((stats)=>{
+          tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, stats)
         });
       }
       else{
@@ -155,7 +151,6 @@ app.put('/covid/track/:guid/:lat/:lng', function (req, res) {
 app.get('/covid/track/:guid/position', function(req, res){
   //Retorna a posição, cep, rua, bairro, cidade, estado referente ao uuid do dispositivo rastreado.
 });
-
 
 app.listen(14400, function () {
   console.log('Covid App running on port 14400.');
