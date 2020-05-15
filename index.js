@@ -38,6 +38,7 @@ var geo_reserve_keys = [
   'lfEB4rDhs08pNsqbd5Hu3SNUwSzdj7fA',
   'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
 ];
+
 //DONE
 app.put('/covid/uuid/:guid', function (req, res) {
   //Cadastra o dispositivo.
@@ -59,6 +60,7 @@ app.put('/covid/uuid/:guid', function (req, res) {
     });
   }
 });
+
 //DONE
 app.post('/covid/submit/:guid/:number', function (req, res) {
   //Realiza a votação
@@ -106,6 +108,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
     }
   }
 });
+
 //DONE
 app.get('/covid/average/:guid/:day', function (req, res) {
   //Retorna a média de votos do dia fornecido (dia da semana).
@@ -125,6 +128,7 @@ app.get('/covid/average/:guid/:day', function (req, res) {
     tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
+
 //DONE
 app.get('/covid/today/:guid/garanhuns', function (req, res){
   //Retorna a média de votos do dia atual e horários de pico e mínimo.
@@ -146,32 +150,31 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
 app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
   //Atualiza as coordenadas do dispositivo no nosso banco de dados.
   if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
-      if (uid_exist){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
         //Queries
         if (waffilter.SafetyFilter.FilterVariable(req.params.lat, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT) && 
             waffilter.SafetyFilter.FilterVariable(req.params.lng, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT)) {
           if (waffilter.SafetyFilter.FilterVariable(req.params.is_tracking, waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
             queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function (bsubmited) {
               if (bsubmited){
-                //tools.dump(res);
+                tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, null);
               }
               else{
-                
+                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
               }
             });
           }
           else{
-
+            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, null);
           }
-          
         }
         else{
-
+          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
         }
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null)
+        tools.dump(res, API_CODES.UUID_INVALID, null);
       }
     });
   }
