@@ -28,7 +28,8 @@ const API_CODES = {
   ERROR_WHEN_UPDATE_USER_LOCATION:          11,
   ERROR_WHEN_RETURN_USER_LOCATION:          12,
   IS_TRACKING_PARAMS_INVALID:               13,
-  IS_TRAKING_SUCCESS_VALID:                 14
+  IS_TRAKING_SUCCESS_VALID:                 14,
+  USER_LOCATION_SUCCESS_RETURNED:           15,
 }
 
 var geo_round_robin = 0;
@@ -146,7 +147,7 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
   }
 });
 
-//
+//DONE
 app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
   //Atualiza as coordenadas do dispositivo no nosso banco de dados.
   if (tools.is_uuid(req.params.guid)){
@@ -155,8 +156,8 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
         //Queries
         if (waffilter.SafetyFilter.FilterVariable(req.params.lat, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT) && 
             waffilter.SafetyFilter.FilterVariable(req.params.lng, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT)) {
-          if (waffilter.SafetyFilter.FilterVariable(req.params.is_tracking, waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
-            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function (bsubmited) {
+          if (waffilter.SafetyFilter.FilterVariable(Boolean(req.params.is_tracking), waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
+            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function(bsubmited) {
               if (bsubmited){
                 tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, null);
               }
@@ -189,7 +190,21 @@ app.get('/covid/track/:guid/position', function(req, res){
     queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
       if (uid_exist){
         //Queries
-
+        queries.sqlite_retrieve_coords(req.params.guid, (coords) => {
+          if (coords) {
+            if (coords.is_tracking == true){
+              tracker.track_reverse_address(coords.lat, coords.lon, geo_reserve_keys[geo_round_robin++ % geo_reserve_keys.length], function(data){
+                tools.dump(res, API_CODES.USER_LOCATION_SUCCESS_RETURNED, { Data: data, is_tracking: Boolean(coords.is_tracking) });
+              });
+            }
+            else{
+              tools.dump(res, API_CODES.USER_LOCATION_SUCCESS_RETURNED, coords);
+            }
+          }
+          else {
+            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, null);
+          }
+        } )
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null)

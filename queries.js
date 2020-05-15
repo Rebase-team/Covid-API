@@ -233,7 +233,7 @@ function sqlite_submit_coords(uuid, lon, lat, is_tracking, pvoid_cb) {
   db.serialize(function () {
     sqlite_check_uuid(uuid, function (bexists) {
       if (bexists) {
-        db.get(`SELECT COALESCE(COUNT(*), 0) AS NumberOfEntries FROM device_tracker INNER JOIN access_guids ON device_tracker.access_guid_id = access_guids.id;`, function (err, row) {
+        db.get(`SELECT COALESCE(COUNT(*), 0) AS NumberOfEntries FROM device_tracker INNER JOIN access_guids ON device_tracker.access_guid_id = access_guids.id WHERE access_guid_id = (SELECT id FROM access_guids WHERE guid = ? LIMIT 1);`, function (err, row) {
           if (Number(row.NumberOfEntries) > 0) {
             db.prepare(`UPDATE device_tracker SET lat = ?, lon = ?, is_tracking = ? WHERE access_guid_id = (SELECT id FROM access_guids WHERE guid = ? LIMIT 1);`).run([lat, lon, is_tracking, uuid]).finalize(function (err) {
               //pvoid_cb(bsubmited_status)
@@ -254,6 +254,22 @@ function sqlite_submit_coords(uuid, lon, lat, is_tracking, pvoid_cb) {
       }
     });
   });
+}
+
+/**Retorna as coordenadas de um dispositivo com o UUID especificado.
+ * 
+ * @param {string} uuid UUID do dispositivo
+ * @param {(coords: any)=>void} pvoid_cb pvoid_cb (Callback de retorno das coordenadas.)
+ */
+function sqlite_retrieve_coords(uuid, pvoid_cb){
+  db.get(`SELECT * FROM device_tracker WHERE access_guid_id = (SELECT id FROm access_guids WHERE guid = ? LIMIT 1);`, [uuid], (err, row) => {
+    if(err) {
+      pvoid_cb(null);
+    }
+    else {
+      pvoid_cb(row);
+    }
+  })
 }
 
 //=========================================================================================================================
@@ -278,5 +294,6 @@ module.exports = {
   sqlite_read_daily_stats: sqlite_read_daily_stats,
   sqlite_read_current_stats: sqlite_read_current_stats,
   sqlite_submit_coords: sqlite_submit_coords,
-  sqlite_serialize: sqlite_serialize
+  sqlite_serialize: sqlite_serialize,
+  sqlite_retrieve_coords: sqlite_retrieve_coords,
 }
