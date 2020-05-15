@@ -25,6 +25,8 @@ const API_CODES = {
   VOTE_SUBMITED:                            8,
   AVERAGE_SUBMITED_SUCCESS:                 9,
   AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS: 10,
+  ERROR_WHEN_UPDATE_USER_LOCATION:          11,
+  ERROR_WHEN_RETURN_USER_LOCATION:          12,
 }
 
 var geo_round_robin = 0;
@@ -136,8 +138,25 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
       }
     });
   }
+<<<<<<< HEAD
   else{
     tools.dump(res, API_CODES.UUID_INVALID, null);
+=======
+});
+//
+app.get('/covid/stats/:guid', function (req, res) {
+  //Retorna os horários de pico.
+  if(tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
+      if (uid_exist) {
+        //Queries
+        queries.sql
+      } 
+      else {
+        tools.dump(res, API_CODES.UUID_INVALID, null)
+      }
+    })
+>>>>>>> Adicionando códigos de erros
   }
 });
 //
