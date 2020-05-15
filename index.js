@@ -141,13 +141,32 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
   }
 });
 //
-app.put('/covid/track/:guid/:lat/:lng', function (req, res) {
+app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
   //Atualiza as coordenadas do dispositivo no nosso banco de dados.
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
       if (uid_exist){
         //Queries
+        if (waffilter.SafetyFilter.FilterVariable(req.params.lat, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT) && 
+            waffilter.SafetyFilter.FilterVariable(req.params.lng, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT)) {
+          if (waffilter.SafetyFilter.FilterVariable(req.params.is_tracking, waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
+            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function (bsubmited) {
+              if (bsubmited){
+                //tools.dump(res);
+              }
+              else{
+                
+              }
+            });
+          }
+          else{
 
+          }
+          
+        }
+        else{
+
+        }
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, null)
