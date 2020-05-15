@@ -22,7 +22,7 @@ function sqlite_check_uuid(uuid, pvoid_cb) {
 
 /**
  * 
- * @param {string} uuid 
+ * @param {string} uuid UUID do dispositivo celular.
  * @param {function} pvoid_cb 
  */
 function sqlite_add_uuid(uuid, pvoid_cb) {
@@ -64,7 +64,7 @@ function sqlite_update_last_access(uuid, pvoid_cb) {
 
 /**
  * 
- * @param {string} uuid 
+ * @param {string} uuid UUID do dispositivo celular.
  * @param {function} pvoid_cb 
  */
 function sqlite_get_access_id(uuid, pvoid_cb) {
@@ -78,7 +78,7 @@ function sqlite_get_access_id(uuid, pvoid_cb) {
 
 /**
  * 
- * @param {string} uuid 
+ * @param {string} uuid UUID do dispositivo celular.
  * @param {function} pvoid_cb 
  */
 function sqlite_get_last_vote_date(uuid, pvoid_cb) {
@@ -159,33 +159,35 @@ function sqlite_read_daily_stats(day, pvoid_cb) {
 
 /**Retorna do banco de dados o maior horário de aglomerações e o menor horário.
  * 
- * @param {(stats_object: {BiggerAgglomeration: { Start, End, TotalVote, NumberOfVotes, Measure }, SmallerAgglomeration: { Start, End, TotalVote, NumberOfVotes, Measure } })=>void} pvoid_cb Equivalente à pvoid_cb(stats_object) onde stats_object é um objeto com a seguinte estrutura:
+ * @param {(stats_object: {TotalVote: 0, NumberOfVotes: 0, BiggerAgglomeration: { Start, End, TotalVote, NumberOfVotes, Measure }, SmallerAgglomeration: { Start, End, TotalVote, NumberOfVotes, Measure } })=>void} pvoid_cb Equivalente à pvoid_cb(stats_object) onde stats_object é um objeto com a seguinte estrutura:
  * 
  */
 function sqlite_read_current_stats(pvoid_cb) {
   db.serialize(function () {
     let Stats = {
+      TotalVote: 0,
+      NumberOfVotes: 0,
       BiggerAgglomeration: { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
       SmallerAgglomeration: { Start: '00:00:00', End: '00:00:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 }
     }
     let BufferStats = {
       ScheduleStats: [
-        { Start: '00:00:00', End: '01:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '02:00:00', End: '03:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '04:00:00', End: '05:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '06:00:00', End: '07:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '08:00:00', End: '09:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '10:00:00', End: '11:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '12:00:00', End: '13:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '14:00:00', End: '15:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '16:00:00', End: '17:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '18:00:00', End: '19:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '20:00:00', End: '21:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 },
-        { Start: '22:00:00', End: '23:59:00', TotalVote: 0, NumberOfVotes: 0, Measure: 0 }
+        { Start: '00:00:00', End: '01:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '02:00:00', End: '03:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '04:00:00', End: '05:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '06:00:00', End: '07:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '08:00:00', End: '09:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '10:00:00', End: '11:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '12:00:00', End: '13:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '14:00:00', End: '15:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '16:00:00', End: '17:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '18:00:00', End: '19:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '20:00:00', End: '21:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER },
+        { Start: '22:00:00', End: '23:59:00', TotalVote: Number.MAX_SAFE_INTEGER, NumberOfVotes: Number.MAX_SAFE_INTEGER, Measure: Number.MAX_SAFE_INTEGER }
       ]
     }
     for (let idx = 0; idx < BufferStats.ScheduleStats.length; idx++) {
-      db.get(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now') AND TIME(created_at) BETWEEN ? AND ?`, [BufferStats.ScheduleStats[idx].Start, BufferStats.ScheduleStats[idx].End], function (err, row) {
+      db.each(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now', 'localtime') AND TIME(created_at) BETWEEN ? AND ?`, [BufferStats.ScheduleStats[idx].Start, BufferStats.ScheduleStats[idx].End], function (err, row) {
         BufferStats.ScheduleStats[idx].TotalVote = row.TotalVote;
         BufferStats.ScheduleStats[idx].NumberOfVotes = row.NumberOfVotes;
         BufferStats.ScheduleStats[idx].Measure = (row.NumberOfVotes != 0 ? row.TotalVote / row.NumberOfVotes : 0);
@@ -197,7 +199,7 @@ function sqlite_read_current_stats(pvoid_cb) {
         }
       });
     }
-    db.get(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now')`, [], function (err, row) {
+    db.get(`SELECT COALESCE(SUM(vote_number), 0) AS TotalVote, COALESCE(COUNT(*), 0) AS NumberOfVotes FROM users_votes WHERE DATE(created_at) = DATE('now', 'localtime')`, [], function (err, row) {
       Stats.TotalVote = row.TotalVote;
       Stats.NumberOfVotes = row.NumberOfVotes;
       //pvoid_cb(stats_object)

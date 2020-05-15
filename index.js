@@ -15,14 +15,16 @@ app.use(Waf.WafSecurityPolicy());
 
 
 const API_CODES = {
-  UUID_STORED:          1,
-  UUID_INVALID:         2,
-  UUID_ALREADY_STORED:  3,
-  UUID_FAILED:          4,
-  VOTE_INVALID:         5,
-  TOO_MANY_VOTES:       6,
-  ERROR_WHEN_VOTING:    7,
-  VOTE_SUBMITED:        8
+  UUID_STORED:                              1,
+  UUID_INVALID:                             2,
+  UUID_ALREADY_STORED:                      3,
+  UUID_FAILED:                              4,
+  VOTE_INVALID:                             5,
+  TOO_MANY_VOTES:                           6,
+  ERROR_WHEN_VOTING:                        7,
+  VOTE_SUBMITED:                            8,
+  AVERAGE_SUBMITED_SUCCESS:                 9,
+  AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS: 10,
 }
 
 var geo_round_robin = 0;
@@ -32,7 +34,7 @@ var geo_reserve_keys = [
   'lfEB4rDhs08pNsqbd5Hu3SNUwSzdj7fA',
   'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
 ];
-
+//DONE
 app.put('/covid/uuid/:guid', function (req, res) {
   //Cadastra o dispositivo.
   if (!tools.is_uuid(req.params.guid)) {
@@ -53,7 +55,7 @@ app.put('/covid/uuid/:guid', function (req, res) {
     });
   }
 });
-
+//DONE
 app.post('/covid/submit/:guid/:number', function (req, res) {
   //Realiza a votação
   if (!tools.is_uuid(req.params.guid)) {
@@ -100,27 +102,56 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
     }
   }
 });
-
+//DONE
 app.get('/covid/average/:guid/:day', function (req, res) {
-  //Retorna a média de votos da última hora.
-  res.json({ teste: 2 }).end();
+  //Retorna a média de votos do dia fornecido (dia da semana).
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (exist) => {
+      if(exist){
+        let objs = []
+        queries.sqlite_read_daily_stats(req.params.day, (statistic) => {
+          statistic.ScheduleStats.forEach( obj => {objs.push(obj)} )
+          tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, objs )
+        })
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, null);
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, null);
+  }
 });
+//
 
 app.get('/covid/today/:guid/garanhuns', function (req, res){
   //Retorna a média de votos do dia atual.
-  res.json({ teste: 2 }).end();
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (exist) => {
+      if (exist) {
+        queries.sqlite_read_current_stats((statistics)=>{
+          statistics.Average = (statistics.NumberOfVotes != 0 ? statistics.TotalVote / statistics.NumberOfVotes : 0);
+          tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, statistics)
+        });
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, null)
+      }
+    })
+  }
 });
-
+//
 app.get('/covid/stats/:guid', function (req, res) {
   //Retorna os horários de pico.
   res.json({ teste: 2 }).end();
 });
-
+//
 app.put('/covid/track/:guid/:lat/:lng', function (req, res) {
   //Atualiza as coordenadas do dispositivo no nosso banco de dados.
   res.json({ teste: 2 }).end();
 });
-
+//
 app.get('/covid/track/:guid/position', function(req, res){
   //Retorna a posição, cep, rua, bairro, cidade, estado referente ao uuid do dispositivo rastreado.
 });
