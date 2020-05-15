@@ -114,8 +114,8 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
 app.get('/covid/average/:guid/:day', function (req, res) {
   //Retorna a média de votos do dia fornecido (dia da semana).
   if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
-      if(uid_exist){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if(uuid_exist){
         queries.sqlite_read_daily_stats(req.params.day, (statistic) => {
           tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, statistic.ScheduleStats )
         });
@@ -134,8 +134,8 @@ app.get('/covid/average/:guid/:day', function (req, res) {
 app.get('/covid/today/:guid/garanhuns', function (req, res){
   //Retorna a média de votos do dia atual e horários de pico e mínimo.
   if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
-      if (uid_exist){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
         queries.sqlite_read_current_stats((stats)=>{
           tools.dump(res, API_CODES.AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS, stats);
         });
@@ -187,8 +187,8 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
 app.get('/covid/track/:guid/position', function(req, res){
   //Retorna a posição, cep, rua, bairro, cidade, estado referente ao uuid do dispositivo rastreado.
   if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
-      if (uid_exist){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
         //Queries
         queries.sqlite_retrieve_coords(req.params.guid, (coords) => {
           if (coords) {
