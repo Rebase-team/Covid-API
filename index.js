@@ -25,6 +25,10 @@ const API_CODES = {
   VOTE_SUBMITED:                            8,
   AVERAGE_SUBMITED_SUCCESS:                 9,
   AVERAGE_MAX_AND_MIN_AGLOMERATION_SUCCESS: 10,
+  ERROR_WHEN_UPDATE_USER_LOCATION:          11,
+  ERROR_WHEN_RETURN_USER_LOCATION:          12,
+  IS_TRACKING_PARAMS_INVALID:               13,
+  IS_TRAKING_SUCCESS_VALID:                 14
 }
 
 var geo_round_robin = 0;
@@ -136,10 +140,8 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
       }
     });
   }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
-  }
 });
+
 //
 app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
   //Atualiza as coordenadas do dispositivo no nosso banco de dados.
