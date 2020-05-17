@@ -222,7 +222,7 @@ app.get('/covid/report/:guid/state/all', function(req, res){
       if (uid_exist){
       }
       else{
-        
+
       }
     });
   }
@@ -232,7 +232,13 @@ app.get('/covid/report/:guid/state/:uf', function(req, res){
 
 });
 
-app.get('/covid/report/:guid/brazil/:')
+app.get('/covid/report/:guid/brazil/:date', function(req, res){
+
+});
+
+app.get('/covid/report/:guid/official', function(req, res){
+
+});
 
 app.listen(14400, function () {
   console.log('Covid App running on port 14400.');
