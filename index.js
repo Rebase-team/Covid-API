@@ -183,7 +183,7 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
     tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
-//
+//DONE
 app.get('/covid/track/:guid/position', function(req, res){
   //Retorna a posição, cep, rua, bairro, cidade, estado referente ao uuid do dispositivo rastreado.
   if (tools.is_uuid(req.params.guid)){
@@ -215,6 +215,24 @@ app.get('/covid/track/:guid/position', function(req, res){
     tools.dump(res, API_CODES.UUID_INVALID, null);
   }
 });
+
+app.get('/covid/report/:guid/state/all', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uid_exist) => {
+      if (uid_exist){
+      }
+      else{
+        
+      }
+    });
+  }
+});
+
+app.get('/covid/report/:guid/state/:uf', function(req, res){
+
+});
+
+app.get('/covid/report/:guid/brazil/:')
 
 app.listen(14400, function () {
   console.log('Covid App running on port 14400.');
