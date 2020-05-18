@@ -343,7 +343,7 @@ app.get('/covid/report/:guid/brazil/:date', function(req, res){
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if (uuid_exist){
-        if (String(req.params.date).length != 8){
+        if (String(req.params.date).length == 8){
           covid.covid_api_report_cases(req.params.date, (data) => {
             tools.dump(res, API_CODES.SHOWING_BRAZIL_COVID_DATA, data);
           });
