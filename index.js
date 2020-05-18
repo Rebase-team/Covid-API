@@ -10,6 +10,10 @@ const covid = require('./covid');
 
 const app = express();
 
+process.on('uncaughtException', (err)=>{
+  
+});
+
 app.use(Waf.WafSecurityPolicy());
 
 /* CODIGOS DE ERROS */ 
@@ -62,6 +66,7 @@ const API_CODES = {
   //DADOS DA COVID DE TODOS OS ESTADOS RETORNADOS COM SUCESSO.
   SHOWING_ALL_STATES_COVID_DATA:            16,
 
+  
   SHOWING_STATE_COVID_DATA:                 17,
 
   SHOWING_BRAZIL_COVID_DATA:                18,
@@ -99,11 +104,11 @@ app.put('/covid/uuid/:guid', function (req, res) {
       queries.sqlite_check_uuid(req.params.guid, function (bexists) {
         if (!bexists) {
           queries.sqlite_add_uuid(req.params.guid, function (bcreated) {
-            tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), null);
+            tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), {});
           });
         }
         else {
-          tools.dump(res, API_CODES.UUID_ALREADY_STORED, null);
+          tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
         }
       });
     });
@@ -143,7 +148,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
                 }
                 else {
                   //Não decorreu uma hora, não pode votar novamente.
-                  tools.dump(res, API_CODES.TOO_MANY_VOTES, null);
+                  tools.dump(res, API_CODES.TOO_MANY_VOTES, {});
                 }
               }
               else {
@@ -154,7 +159,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
             });
           }
           else {
-            tools.dump(res, API_CODES.UUID_INVALID, null);
+            tools.dump(res, API_CODES.UUID_INVALID, {});
           }
         });
       });
@@ -177,12 +182,12 @@ app.get('/covid/average/:guid/:day', function (req, res) {
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -200,7 +205,7 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
@@ -223,28 +228,28 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
           if (waffilter.SafetyFilter.FilterVariable(Boolean(req.params.is_tracking), waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
             queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function(bsubmited) {
               if (bsubmited){
-                tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, null);
+                tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, {});
               }
               else{
-                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
+                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
               }
             });
           }
           else{
-            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, null);
+            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, {});
           }
         }
         else{
-          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
+          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
         }
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -270,17 +275,17 @@ app.get('/covid/track/:guid/position', function(req, res){
             }
           }
           else {
-            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, null);
+            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, {});
           }
-        } )
+        });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null)
+        tools.dump(res, API_CODES.UUID_INVALID, {})
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -297,12 +302,12 @@ app.get('/covid/report/:guid/state/all', function(req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -320,12 +325,12 @@ app.get('/covid/report/:guid/state/:uf', function(req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -343,19 +348,23 @@ app.get('/covid/report/:guid/brazil/:date', function(req, res){
             tools.dump(res, API_CODES.SHOWING_BRAZIL_COVID_DATA, data);
           });
         } catch(e){
-          tools.dump(res, API_CODES.INVALID_DATE_FORMAT, null);
+          tools.dump(res, API_CODES.INVALID_DATE_FORMAT, {});
         }
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
+// Rota que mostra os dados de covid-19 das entidades oficiais dos governos estaduais.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+*/
 app.get('/covid/report/:guid/official', function(req, res){
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
@@ -365,15 +374,19 @@ app.get('/covid/report/:guid/official', function(req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
+// Rota que mostra os dados de covid-19 no município de garanhuns.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+*/
 app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
@@ -381,12 +394,12 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
         tools.dump(res, 0x00fc, {'message': 'Será implementada em breve!'});
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
