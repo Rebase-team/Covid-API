@@ -3,7 +3,6 @@
 const axios = require('axios').default;
 
 function track_reverse_address(lat, lon, geo_reserve_key, pvoid_cb) {
-  console.log(geo_reserve_key)
   axios.get(`https://open.mapquestapi.com/geocoding/v1/reverse?key=${geo_reserve_key}&location=${lat},${lon}&includeRoadMetadata=true&includeNearestIntersection=true`).then((response) => {
     pvoid_cb({
       street: response.data.results[0].locations[0].street,

@@ -27,8 +27,7 @@ function covid_api_report_state(uf, pvoid_cb){
  * @param {Date} date 
  */
 function covid_api_report_cases(date, pvoid_cb){
-    let arr = date.toLocaleDateString().split('/');
-    axios.get(`https://covid19-brazil-api.now.sh/api/report/v1/brazil/${arr[2] + arr[1] + arr[0]}`).then((resp) => { pvoid_cb(resp.data); }).catch((err) => { pvoid_cb(null); });
+    axios.get(`https://covid19-brazil-api.now.sh/api/report/v1/brazil/${date}`).then((resp) => { pvoid_cb(resp.data); }).catch((err) => { pvoid_cb(null); });
 }
 
 /**

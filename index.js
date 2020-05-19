@@ -1,8 +1,8 @@
 const express = require('express');
 const Waf = require('mini-waf/wafbase');
-const wafrules = require('mini-waf/wafrules');
 const waffilter = require('mini-waf/waffilter');
 const colors = require('colors');
+const uaparser = require('ua-parser-js');
 
 const queries = require('./queries');
 const tools = require('./tools');
@@ -17,7 +17,7 @@ app.use(Waf.WafSecurityPolicy());
 const API_CODES = {
   //UUID ARMAZENADA
   UUID_STORED:                              1,
-  
+
   //UUID INVALIDA
   UUID_INVALID:                             2,
   
@@ -48,17 +48,44 @@ const API_CODES = {
   //ERRO EM ATUALIZAR A LOCALIZAÇÃO DO USUARIO
   ERROR_WHEN_UPDATE_USER_LOCATION:          11,
   
-  //ERRO EM RETORNAR A LOCALIZAÇÃOL
+  //ERRO EM RETORNAR A LOCALIZAÇÃO
   ERROR_WHEN_RETURN_USER_LOCATION:          12,
   
   //PARAMETRO IS_TRACKING INVALIDO
   IS_TRACKING_PARAMS_INVALID:               13,
   
-  //PARAMETRO IS_TRAKING VALIDO
-  IS_TRAKING_SUCCESS_VALID:                 14,
+  //DISPOSITIVO SENDO RASTREADO COM SUCESSO
+  SUCCESSFULLY_TRACKED:                     14,
   
   //LOCALIZAÇÃO DO USER RETORNADA COM SUCESSO
   USER_LOCATION_SUCCESS_RETURNED:           15,
+
+  //DADOS DA COVID DE TODOS OS ESTADOS RETORNADOS COM SUCESSO.
+  SHOWING_ALL_STATES_COVID_DATA:            16,
+
+  //RETORNANDO DADOS DA COVID DE UNIDADE FEDERATIVA
+  SHOWING_STATE_COVID_DATA:                 17,
+
+  //RETORNANDO DADOS DA COVID NO BRASIL
+  SHOWING_BRAZIL_COVID_DATA:                18,
+
+  //DATA FORNECIDA É INVÁLIDA.
+  INVALID_DATE_FORMAT:                      19,
+
+  //RETORNANDO FONTES OFICIAIS DE DADOS.
+  SHOWING_OFFICIAL_COVID_SOURCES:           20,
+
+  //RETORNA OS DADOS DA COVID EM GARANHUNS.
+  SHOWING_GARANHUNS_COVID_DATA:             21
+
+}
+
+/* ERRO 404, ROTA NÃO ENCONTRADA! */
+const API_NOT_FOUND_ROUTE = function(req, res){
+  res.status(404);
+  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
+  let uagent = uaparser(req.headers["user-agent"]);
+  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + `Device: ${String(uagent.device.type).green} | `.yellow + `IP Address: ${String(req.ip).red} `.yellow + `Url: ${String(req.url).cyan}`.yellow);
 }
 
 /* CHAVES PARA USO DA API DE LOCALIZAÇÃO */
@@ -87,11 +114,11 @@ app.put('/covid/uuid/:guid', function (req, res) {
       queries.sqlite_check_uuid(req.params.guid, function (bexists) {
         if (!bexists) {
           queries.sqlite_add_uuid(req.params.guid, function (bcreated) {
-            tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), null);
+            tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), {});
           });
         }
         else {
-          tools.dump(res, API_CODES.UUID_ALREADY_STORED, null);
+          tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
         }
       });
     });
@@ -131,7 +158,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
                 }
                 else {
                   //Não decorreu uma hora, não pode votar novamente.
-                  tools.dump(res, API_CODES.TOO_MANY_VOTES, null);
+                  tools.dump(res, API_CODES.TOO_MANY_VOTES, {});
                 }
               }
               else {
@@ -142,7 +169,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
             });
           }
           else {
-            tools.dump(res, API_CODES.UUID_INVALID, null);
+            tools.dump(res, API_CODES.UUID_INVALID, {});
           }
         });
       });
@@ -165,12 +192,12 @@ app.get('/covid/average/:guid/:day', function (req, res) {
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -188,7 +215,7 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
@@ -211,28 +238,28 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
           if (waffilter.SafetyFilter.FilterVariable(Boolean(req.params.is_tracking), waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
             queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function(bsubmited) {
               if (bsubmited){
-                tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, null);
+                tools.dump(res, API_CODES.SUCCESSFULLY_TRACKED, {});
               }
               else{
-                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
+                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
               }
             });
           }
           else{
-            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, null);
+            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, {});
           }
         }
         else{
-          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, null);
+          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
         }
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null);
+        tools.dump(res, API_CODES.UUID_INVALID, {});
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
@@ -258,21 +285,162 @@ app.get('/covid/track/:guid/position', function(req, res){
             }
           }
           else {
-            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, null);
+            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, {});
           }
-        } )
+        });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, null)
+        tools.dump(res, API_CODES.UUID_INVALID, {})
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, null);
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
 });
 
+<<<<<<< HEAD
 // Rodando o server
-app.listen(14400, function () {
-  console.log('Covid App running on port 14400.');
+=======
+// Rota que mostra os dados de covid-19 de todos os estados brasileiros.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+*/
+app.get('/covid/report/:guid/state/all', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
+        covid.covid_api_report_all_states((data) => {
+          tools.dump(res, API_CODES.SHOWING_ALL_STATES_COVID_DATA, data);
+        });
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, {});
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
 });
+
+// Rota que mostra os dados de covid-19 de uma unidade federativa específica.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+    :uf -> unidade federativa
+*/
+app.get('/covid/report/:guid/state/:uf', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
+        covid.covid_api_report_state(req.params.uf, (data) => {
+          tools.dump(res, API_CODES.SHOWING_STATE_COVID_DATA, data);
+        });
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, {});
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+});
+
+// Rota que mostra os dados de covid-19 de uma unidade federativa específica.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+    :date -> data no formato DD-MM-YYYY ou um timestamp em milissegundos.
+*/
+app.get('/covid/report/:guid/brazil/:date', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
+        if (String(req.params.date).length == 8){
+          covid.covid_api_report_cases(req.params.date, (data) => {
+            tools.dump(res, API_CODES.SHOWING_BRAZIL_COVID_DATA, data);
+          });
+        }
+        else{
+          tools.dump(res, API_CODES.INVALID_DATE_FORMAT, {});
+        }
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, {});
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+});
+
+// Rota que mostra os dados de covid-19 das entidades oficiais dos governos estaduais.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+*/
+app.get('/covid/report/:guid/official', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
+        covid.covid_api_available_reports((data) => {
+          tools.dump(res, API_CODES.SHOWING_OFFICIAL_COVID_SOURCES, data);
+        });
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, {});
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+});
+
+// Rota que mostra os dados de covid-19 no município de garanhuns.
+/* PARÂMETROS ->
+    :guid -> número de indentificação do celular
+*/
+app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
+  if (tools.is_uuid(req.params.guid)){
+    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
+      if (uuid_exist){
+        tools.dump(res, 0x00fc, {
+          "uid": 0,
+          "cases": 0,
+          "deaths": 0,
+          "suspects": 0,
+          "refuses": 0,
+          "datetime": (new Date()).toISOString()
+      });
+      }
+      else{
+        tools.dump(res, API_CODES.UUID_INVALID, {});
+      }
+    });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+  }
+});
+
+/* MANIPULADORES DO ERRO 404, NOT FOUND */
+app.get('*',  API_NOT_FOUND_ROUTE);
+app.post('*', API_NOT_FOUND_ROUTE);
+app.put('*',  API_NOT_FOUND_ROUTE);
+app.delete('*', API_NOT_FOUND_ROUTE);
+app.patch('*', API_NOT_FOUND_ROUTE);
+
+>>>>>>> da4ba646d91608f335211188d7e4683c9cd64c89
+app.listen(14400, function () {
+  console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
+  for (let idx = 0; idx < app._router.stack.length; idx++){
+    if (app._router.stack[idx].route) {
+      if (app._router.stack[idx].route.path) {
+        console.log(`[${app._router.stack[idx].route.stack[0].method.toUpperCase().red}] -> ` + String(app._router.stack[idx].route.path).cyan);
+      }
+    }
+  }
+});
+
+process.on('uncaughtException', (err) => {});
