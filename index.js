@@ -272,7 +272,7 @@ app.get('/covid/track/:guid/position', function(req, res){
   }
 });
 
-// Abrindo 
+// Rodando o server
 app.listen(14400, function () {
   console.log('Covid App running on port 14400.');
 });
