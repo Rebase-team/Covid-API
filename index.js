@@ -8,7 +8,7 @@ const queries = require('./queries');
 const tools = require('./tools');
 const tracker = require('./tracker');
 const covid = require('./covid');
-
+const axios = require('axios');
 const app = express();
 
 app.use(Waf.WafSecurityPolicy());
@@ -96,6 +96,26 @@ var geo_reserve_keys = [
   'lfEB4rDhs08pNsqbd5Hu3SNUwSzdj7fA',
   'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
 ];
+
+
+/* FUNÇÃO QUE ENVIA O ERROR PARA O BOT */
+function sendErrorMessageUsingBoot(msg){
+  // Variaveis
+    //Token
+    const TOKEN = '990027737:AAGKgApnLhnXIEeWki-sq0uvY4YQoZEFy60;' 
+    // Pegando o código de resposta 
+    const codeMsg = msg.response;
+  
+  //Logica
+    // Interando o objeto retornado para assim retornar o erro referente ao código
+    for (var [key, value] of Object.entries(API_CODES)) {
+      if(value == codeMsg) {
+        const exactMsg = `Response:${key}`
+        return axios.get(`https://api.telegram.org/${TOKEN}/sendMessage?chat_id=@gunscovid19bot&text=${exactMsg}`)
+      }
+}
+}
+
 //==============================================================================
 /* ROTAS */
 //==============================================================================
@@ -107,7 +127,8 @@ var geo_reserve_keys = [
 app.put('/covid/uuid/:guid', function (req, res) {
   //Cadastra o dispositivo.
   if (!tools.is_uuid(req.params.guid)) {
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    //tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
   else {
     queries.sqlite_serialize(function () {
@@ -118,7 +139,8 @@ app.put('/covid/uuid/:guid', function (req, res) {
           });
         }
         else {
-          tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
+          //tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
+          sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_ALREADY_STORED, {}))
         }
       });
     });
@@ -133,15 +155,15 @@ app.put('/covid/uuid/:guid', function (req, res) {
 app.post('/covid/submit/:guid/:number', function (req, res) {
   //Realiza a votação
   if (!tools.is_uuid(req.params.guid)) {
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
   else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)) {
-    tools.dump(res, API_CODES.VOTE_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.VOTE_INVALID, {}));
   }
   else {
     let voteNum = Number(req.params.number);
     if ((voteNum < 1) || (voteNum > 4)) {
-      tools.dump(res, API_CODES.VOTE_INVALID, {});
+      sendErrorMessageUsingBoot(tools.dump(res, API_CODES.VOTE_INVALID, {}))
     }
     else {
       queries.sqlite_serialize(function () {
@@ -158,7 +180,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
                 }
                 else {
                   //Não decorreu uma hora, não pode votar novamente.
-                  tools.dump(res, API_CODES.TOO_MANY_VOTES, {});
+                  sendErrorMessageUsingBoot(tools.dump(res, API_CODES.TOO_MANY_VOTES, {}))
                 }
               }
               else {
@@ -169,7 +191,7 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
             });
           }
           else {
-            tools.dump(res, API_CODES.UUID_INVALID, {});
+            sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
           }
         });
       });
@@ -192,12 +214,12 @@ app.get('/covid/average/:guid/:day', function (req, res) {
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
+        sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
 });
 
@@ -215,7 +237,7 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
+        sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
       }
     });
   }
@@ -241,25 +263,25 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
                 tools.dump(res, API_CODES.SUCCESSFULLY_TRACKED, {});
               }
               else{
-                tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
+                sendErrorMessageUsingBoot(tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {}))
               }
             });
           }
           else{
-            tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, {});
+            sendErrorMessageUsingBoot(tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, {}))
           }
         }
         else{
-          tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
+          sendErrorMessageUsingBoot(tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {}))
         }
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
+        sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
 });
 
@@ -285,153 +307,23 @@ app.get('/covid/track/:guid/position', function(req, res){
             }
           }
           else {
-            tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, {});
+            sendErrorMessageUsingBoot(tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, {}))
           }
         });
       }
       else{
-        tools.dump(res, API_CODES.UUID_INVALID, {})
+        sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
       }
     });
   }
   else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
 });
 
-<<<<<<< HEAD
+
+
 // Rodando o server
-=======
-// Rota que mostra os dados de covid-19 de todos os estados brasileiros.
-/* PARÂMETROS ->
-    :guid -> número de indentificação do celular
-*/
-app.get('/covid/report/:guid/state/all', function(req, res){
-  if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
-      if (uuid_exist){
-        covid.covid_api_report_all_states((data) => {
-          tools.dump(res, API_CODES.SHOWING_ALL_STATES_COVID_DATA, data);
-        });
-      }
-      else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-      }
-    });
-  }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
-  }
-});
-
-// Rota que mostra os dados de covid-19 de uma unidade federativa específica.
-/* PARÂMETROS ->
-    :guid -> número de indentificação do celular
-    :uf -> unidade federativa
-*/
-app.get('/covid/report/:guid/state/:uf', function(req, res){
-  if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
-      if (uuid_exist){
-        covid.covid_api_report_state(req.params.uf, (data) => {
-          tools.dump(res, API_CODES.SHOWING_STATE_COVID_DATA, data);
-        });
-      }
-      else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-      }
-    });
-  }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
-  }
-});
-
-// Rota que mostra os dados de covid-19 de uma unidade federativa específica.
-/* PARÂMETROS ->
-    :guid -> número de indentificação do celular
-    :date -> data no formato DD-MM-YYYY ou um timestamp em milissegundos.
-*/
-app.get('/covid/report/:guid/brazil/:date', function(req, res){
-  if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
-      if (uuid_exist){
-        if (String(req.params.date).length == 8){
-          covid.covid_api_report_cases(req.params.date, (data) => {
-            tools.dump(res, API_CODES.SHOWING_BRAZIL_COVID_DATA, data);
-          });
-        }
-        else{
-          tools.dump(res, API_CODES.INVALID_DATE_FORMAT, {});
-        }
-      }
-      else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-      }
-    });
-  }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
-  }
-});
-
-// Rota que mostra os dados de covid-19 das entidades oficiais dos governos estaduais.
-/* PARÂMETROS ->
-    :guid -> número de indentificação do celular
-*/
-app.get('/covid/report/:guid/official', function(req, res){
-  if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
-      if (uuid_exist){
-        covid.covid_api_available_reports((data) => {
-          tools.dump(res, API_CODES.SHOWING_OFFICIAL_COVID_SOURCES, data);
-        });
-      }
-      else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-      }
-    });
-  }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
-  }
-});
-
-// Rota que mostra os dados de covid-19 no município de garanhuns.
-/* PARÂMETROS ->
-    :guid -> número de indentificação do celular
-*/
-app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
-  if (tools.is_uuid(req.params.guid)){
-    queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
-      if (uuid_exist){
-        tools.dump(res, 0x00fc, {
-          "uid": 0,
-          "cases": 0,
-          "deaths": 0,
-          "suspects": 0,
-          "refuses": 0,
-          "datetime": (new Date()).toISOString()
-      });
-      }
-      else{
-        tools.dump(res, API_CODES.UUID_INVALID, {});
-      }
-    });
-  }
-  else{
-    tools.dump(res, API_CODES.UUID_INVALID, {});
-  }
-});
-
-/* MANIPULADORES DO ERRO 404, NOT FOUND */
-app.get('*',  API_NOT_FOUND_ROUTE);
-app.post('*', API_NOT_FOUND_ROUTE);
-app.put('*',  API_NOT_FOUND_ROUTE);
-app.delete('*', API_NOT_FOUND_ROUTE);
-app.patch('*', API_NOT_FOUND_ROUTE);
-
->>>>>>> da4ba646d91608f335211188d7e4683c9cd64c89
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
   for (let idx = 0; idx < app._router.stack.length; idx++){
