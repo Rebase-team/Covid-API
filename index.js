@@ -11,8 +11,6 @@ const covid = require('./covid');
 
 const app = express();
 
-process.on('uncaughtException', (err)=>{});
-
 app.use(Waf.WafSecurityPolicy());
 
 /* CODIGOS DE ERROS */ 
@@ -77,6 +75,14 @@ const API_CODES = {
   //RETORNANDO FONTES OFICIAIS DE DADOS.
   SHOWING_OFFICIAL_COVID_SOURCES:           20,
 
+}
+
+/* ERRO 404, ROTA NÃO ENCONTRADA! */
+const API_NOT_FOUND_ROUTE = function(req, res){
+  res.status(404);
+  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
+  let uagent = uaparser(req.headers["user-agent"]);
+  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + `Device: ${String(uagent.device.type).green} | `.yellow + `IP Address: ${String(req.ip).red} `.yellow + `Url: ${String(req.url).cyan}`.yellow);
 }
 
 /* CHAVES PARA USO DA API DE LOCALIZAÇÃO */
@@ -405,17 +411,12 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
-app.get('*', function(req, res){
-  let uagent = uaparser(req.headers["user-agent"]);
-  res.status(404);
-  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
-  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + 
-              `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + 
-              `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + 
-              `Device: ${String(uagent.device.type).green} | `.yellow + 
-              `IP Address: ${String(req.ip).red} `.yellow + 
-              `Url: ${String(req.url).cyan}`.yellow);
-});
+/* MANIPULADORES DO ERRO 404, NOT FOUND */
+app.get('*',  API_NOT_FOUND_ROUTE);
+app.post('*', API_NOT_FOUND_ROUTE);
+app.put('*',  API_NOT_FOUND_ROUTE);
+app.delete('*', API_NOT_FOUND_ROUTE);
+app.patch('*', API_NOT_FOUND_ROUTE);
 
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
@@ -427,3 +428,5 @@ app.listen(14400, function () {
     }
   }
 });
+
+process.on('uncaughtException', (err) => {});
