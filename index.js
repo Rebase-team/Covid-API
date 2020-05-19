@@ -2,6 +2,7 @@ const express = require('express');
 const Waf = require('mini-waf/wafbase');
 const waffilter = require('mini-waf/waffilter');
 const colors = require('colors');
+const uaparser = require('ua-parser-js');
 
 const queries = require('./queries');
 const tools = require('./tools');
@@ -10,9 +11,7 @@ const covid = require('./covid');
 
 const app = express();
 
-process.on('uncaughtException', (err)=>{
-
-});
+process.on('uncaughtException', (err)=>{});
 
 app.use(Waf.WafSecurityPolicy());
 
@@ -51,14 +50,14 @@ const API_CODES = {
   //ERRO EM ATUALIZAR A LOCALIZAÇÃO DO USUARIO
   ERROR_WHEN_UPDATE_USER_LOCATION:          11,
   
-  //ERRO EM RETORNAR A LOCALIZAÇÃOL
+  //ERRO EM RETORNAR A LOCALIZAÇÃO
   ERROR_WHEN_RETURN_USER_LOCATION:          12,
   
   //PARAMETRO IS_TRACKING INVALIDO
   IS_TRACKING_PARAMS_INVALID:               13,
   
-  //PARAMETRO IS_TRAKING VALIDO
-  IS_TRAKING_SUCCESS_VALID:                 14,
+  //DISPOSITIVO SENDO RASTREADO COM SUCESSO
+  SUCCESSFULLY_TRACKED:                     14,
   
   //LOCALIZAÇÃO DO USER RETORNADA COM SUCESSO
   USER_LOCATION_SUCCESS_RETURNED:           15,
@@ -66,15 +65,17 @@ const API_CODES = {
   //DADOS DA COVID DE TODOS OS ESTADOS RETORNADOS COM SUCESSO.
   SHOWING_ALL_STATES_COVID_DATA:            16,
 
-  
+  //RETORNANDO DADOS DA COVID DE UNIDADE FEDERATIVA
   SHOWING_STATE_COVID_DATA:                 17,
 
+  //RETORNANDO DADOS DA COVID NO BRASIL
   SHOWING_BRAZIL_COVID_DATA:                18,
 
+  //DATA FORNECIDA É INVÁLIDA.
   INVALID_DATE_FORMAT:                      19,
 
+  //RETORNANDO FONTES OFICIAIS DE DADOS.
   SHOWING_OFFICIAL_COVID_SOURCES:           20,
-
 
 }
 
@@ -226,9 +227,9 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
         if (waffilter.SafetyFilter.FilterVariable(req.params.lat, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT) && 
             waffilter.SafetyFilter.FilterVariable(req.params.lng, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT)) {
           if (waffilter.SafetyFilter.FilterVariable(Boolean(req.params.is_tracking), waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
-            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, req.params.is_tracking, function(bsubmited) {
+            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, Boolean(req.params.is_tracking), function(bsubmited) {
               if (bsubmited){
-                tools.dump(res, API_CODES.IS_TRAKING_SUCCESS_VALID, {});
+                tools.dump(res, API_CODES.SUCCESSFULLY_TRACKED, {});
               }
               else{
                 tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
@@ -404,9 +405,16 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
-app.all('*', function(req, res){
-  console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` Not found error 404! User-Agent: ${req.headers["user-agent"].red} `.yellow + `IP Address: ${String(req.ip).red}`.yellow + ` Url: ${String(req.url).cyan}`.yellow);
+app.use(function(req, res){
+  let uagent = uaparser(req.headers["user-agent"]);
+  res.status(404);
   tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
+  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + 
+              `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + 
+              `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + 
+              `Device: ${String(uagent.device.type).green} | `.yellow + 
+              `IP Address: ${String(req.ip).red} `.yellow + 
+              `Url: ${String(req.url).cyan}`.yellow);
 });
 
 app.listen(14400, function () {
