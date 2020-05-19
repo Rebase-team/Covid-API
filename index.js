@@ -405,17 +405,17 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
-//app.use(function(req, res){
-//  let uagent = uaparser(req.headers["user-agent"]);
-//  res.status(404);
-//  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
-//  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + 
-//              `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + 
-//              `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + 
-//              `Device: ${String(uagent.device.type).green} | `.yellow + 
-//              `IP Address: ${String(req.ip).red} `.yellow + 
-//              `Url: ${String(req.url).cyan}`.yellow);
-//});
+app.get('*', function(req, res){
+  let uagent = uaparser(req.headers["user-agent"]);
+  res.status(404);
+  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
+  console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + 
+              `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + 
+              `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + 
+              `Device: ${String(uagent.device.type).green} | `.yellow + 
+              `IP Address: ${String(req.ip).red} `.yellow + 
+              `Url: ${String(req.url).cyan}`.yellow);
+});
 
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
