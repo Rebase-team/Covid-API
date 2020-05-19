@@ -75,6 +75,9 @@ const API_CODES = {
   //RETORNANDO FONTES OFICIAIS DE DADOS.
   SHOWING_OFFICIAL_COVID_SOURCES:           20,
 
+  //RETORNA OS DADOS DA COVID EM GARANHUNS.
+  SHOWING_GARANHUNS_COVID_DATA:             21
+
 }
 
 /* ERRO 404, ROTA NÃO ENCONTRADA! */
@@ -399,7 +402,14 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if (uuid_exist){
-        tools.dump(res, 0x00fc, {'message': 'Será implementada em breve!'});
+        tools.dump(res, 0x00fc, {
+          "uid": 0,
+          "cases": 0,
+          "deaths": 0,
+          "suspects": 0,
+          "refuses": 0,
+          "datetime": (new Date()).toISOString()
+      });
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
