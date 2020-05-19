@@ -17,7 +17,7 @@ app.use(Waf.WafSecurityPolicy());
 const API_CODES = {
   //UUID ARMAZENADA
   UUID_STORED:                              1,
-  
+
   //UUID INVALIDA
   UUID_INVALID:                             2,
   
@@ -236,7 +236,7 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
         if (waffilter.SafetyFilter.FilterVariable(req.params.lat, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT) && 
             waffilter.SafetyFilter.FilterVariable(req.params.lng, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_FLOAT)) {
           if (waffilter.SafetyFilter.FilterVariable(Boolean(req.params.is_tracking), waffilter.SafetyFilterType.FILTER_VALIDATE_BOOLEAN)){
-            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, Boolean(req.params.is_tracking), function(bsubmited) {
+            queries.sqlite_submit_coords(req.params.guid, req.params.lng, req.params.lat, Number(Boolean(req.params.is_tracking)), function(bsubmited) {
               if (bsubmited){
                 tools.dump(res, API_CODES.SUCCESSFULLY_TRACKED, {});
               }
