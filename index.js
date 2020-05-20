@@ -8,7 +8,7 @@ const queries = require('./queries');
 const tools = require('./tools');
 const tracker = require('./tracker');
 const covid = require('./covid');
-
+const axios = require('axios');
 const app = express();
 
 app.use(Waf.WafSecurityPolicy());
@@ -96,6 +96,26 @@ var geo_reserve_keys = [
   'lfEB4rDhs08pNsqbd5Hu3SNUwSzdj7fA',
   'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
 ];
+
+
+/* FUNÇÃO QUE ENVIA O ERROR PARA O BOT */
+function sendErrorMessageUsingBoot(msg){
+  // Variaveis
+    //Token
+    const TOKEN = '990027737:AAGKgApnLhnXIEeWki-sq0uvY4YQoZEFy60;' 
+    // Pegando o código de resposta 
+    const codeMsg = msg.response;
+  
+  //Logica
+    // Interando o objeto retornado para assim retornar o erro referente ao código
+    for (var [key, value] of Object.entries(API_CODES)) {
+      if(value == codeMsg) {
+        const exactMsg = `Response:${key}`
+        return axios.get(`https://api.telegram.org/${TOKEN}/sendMessage?chat_id=@gunscovid19bot&text=${exactMsg}`)
+      }
+}
+}
+
 //==============================================================================
 /* ROTAS */
 //==============================================================================
@@ -138,7 +158,7 @@ app.put('/covid/uuid/:guid', function (req, res) {
 app.post('/covid/submit/:guid/:number', function (req, res) {
   //Realiza a votação
   if (!tools.is_uuid(req.params.guid)) {
-    tools.dump(res, API_CODES.UUID_INVALID, {});
+    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
   }
   else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)) {
     tools.dump(res, API_CODES.VOTE_INVALID, {});
@@ -462,12 +482,6 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
-/* MANIPULADORES DO ERRO 404, NOT FOUND */
-app.get('*',  API_NOT_FOUND_ROUTE);
-app.post('*', API_NOT_FOUND_ROUTE);
-app.put('*',  API_NOT_FOUND_ROUTE);
-app.delete('*', API_NOT_FOUND_ROUTE);
-app.patch('*', API_NOT_FOUND_ROUTE);
 
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
