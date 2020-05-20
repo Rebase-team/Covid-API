@@ -108,6 +108,7 @@ app.put('/covid/uuid/:guid', function (req, res) {
   //Cadastra o dispositivo.
   if (!tools.is_uuid(req.params.guid)) {
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
   else {
     queries.sqlite_serialize(function () {
@@ -115,10 +116,14 @@ app.put('/covid/uuid/:guid', function (req, res) {
         if (!bexists) {
           queries.sqlite_add_uuid(req.params.guid, function (bcreated) {
             tools.dump(res, (bcreated ? API_CODES.UUID_STORED : API_CODES.UUID_FAILED), {});
+            if (!bcreated){
+              tools.debug_bot_send(API_CODES.UUID_FAILED, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
+            }
           });
         }
         else {
           tools.dump(res, API_CODES.UUID_ALREADY_STORED, {});
+          tools.debug_bot_send(API_CODES.UUID_ALREADY_STORED, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
         }
       });
     });
@@ -137,11 +142,13 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
   }
   else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)) {
     tools.dump(res, API_CODES.VOTE_INVALID, {});
+    tools.debug_bot_send(API_CODES.VOTE_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
   else {
     let voteNum = Number(req.params.number);
     if ((voteNum < 1) || (voteNum > 4)) {
       tools.dump(res, API_CODES.VOTE_INVALID, {});
+      tools.debug_bot_send(API_CODES.VOTE_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
     }
     else {
       queries.sqlite_serialize(function () {
@@ -154,22 +161,30 @@ app.post('/covid/submit/:guid/:number', function (req, res) {
                   //Decorrida uma hora, pode votar.
                   queries.sqlite_submit_vote(req.params.guid, voteNum, function (bsubmited) {
                     tools.dump(res, (bsubmited ? API_CODES.VOTE_SUBMITED : API_CODES.ERROR_WHEN_VOTING), null);
+                    if (!bsubmited){
+                      tools.debug_bot_send(API_CODES.ERROR_WHEN_VOTING, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
+                    }
                   });
                 }
                 else {
                   //Não decorreu uma hora, não pode votar novamente.
                   tools.dump(res, API_CODES.TOO_MANY_VOTES, {});
+                  tools.debug_bot_send(API_CODES.TOO_MANY_VOTES, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
                 }
               }
               else {
                 queries.sqlite_submit_vote(req.params.guid, voteNum, function (bsubmited) {
                   tools.dump(res, (bsubmited ? API_CODES.VOTE_SUBMITED : API_CODES.ERROR_WHEN_VOTING), null);
+                  if (!bsubmited){
+                    tools.debug_bot_send(API_CODES.ERROR_WHEN_VOTING, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
+                  }
                 });
               }
             });
           }
           else {
             tools.dump(res, API_CODES.UUID_INVALID, {});
+            tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
           }
         });
       });
@@ -188,16 +203,18 @@ app.get('/covid/average/:guid/:day', function (req, res) {
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if(uuid_exist){
         queries.sqlite_read_daily_stats(req.params.day, (statistic) => {
-          tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, statistic.ScheduleStats )
+          tools.dump(res, API_CODES.AVERAGE_SUBMITED_SUCCESS, statistic.ScheduleStats);
         });
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -216,8 +233,13 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
+  }
+  else{
+    tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -242,24 +264,29 @@ app.put('/covid/track/:guid/:lat/:lng/:is_tracking', function (req, res) {
               }
               else{
                 tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
+                tools.debug_bot_send(API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
               }
             });
           }
           else{
             tools.dump(res, API_CODES.IS_TRACKING_PARAMS_INVALID, {});
+            tools.debug_bot_send(API_CODES.IS_TRACKING_PARAMS_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
           }
         }
         else{
           tools.dump(res, API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, {});
+          tools.debug_bot_send(API_CODES.ERROR_WHEN_UPDATE_USER_LOCATION, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
         }
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -286,22 +313,22 @@ app.get('/covid/track/:guid/position', function(req, res){
           }
           else {
             tools.dump(res, API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, {});
+            tools.debug_bot_send(API_CODES.ERROR_WHEN_RETURN_USER_LOCATION, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
           }
         });
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {})
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
-<<<<<<< HEAD
-// Rodando o server
-=======
 // Rota que mostra os dados de covid-19 de todos os estados brasileiros.
 /* PARÂMETROS ->
     :guid -> número de indentificação do celular
@@ -316,11 +343,13 @@ app.get('/covid/report/:guid/state/all', function(req, res){
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -339,11 +368,13 @@ app.get('/covid/report/:guid/state/:uf', function(req, res){
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -363,15 +394,18 @@ app.get('/covid/report/:guid/brazil/:date', function(req, res){
         }
         else{
           tools.dump(res, API_CODES.INVALID_DATE_FORMAT, {});
+          tools.debug_bot_send(API_CODES.INVALID_DATE_FORMAT, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
         }
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -389,11 +423,13 @@ app.get('/covid/report/:guid/official', function(req, res){
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -405,22 +441,24 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   if (tools.is_uuid(req.params.guid)){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if (uuid_exist){
-        tools.dump(res, 0x00fc, {
+        tools.dump(res, API_CODES.SHOWING_GARANHUNS_COVID_DATA, {
           "uid": 0,
           "cases": 0,
-          "deaths": 0,
+          "recovered": 0,
           "suspects": 0,
-          "refuses": 0,
+          "deaths": 0,
           "datetime": (new Date()).toISOString()
       });
       }
       else{
         tools.dump(res, API_CODES.UUID_INVALID, {});
+        tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
       }
     });
   }
   else{
     tools.dump(res, API_CODES.UUID_INVALID, {});
+    tools.debug_bot_send(API_CODES.UUID_INVALID, req, tools.DEBUG_CHANNELS.MAIN_CHANNEL);
   }
 });
 
@@ -431,7 +469,6 @@ app.put('*',  API_NOT_FOUND_ROUTE);
 app.delete('*', API_NOT_FOUND_ROUTE);
 app.patch('*', API_NOT_FOUND_ROUTE);
 
->>>>>>> da4ba646d91608f335211188d7e4683c9cd64c89
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
   for (let idx = 0; idx < app._router.stack.length; idx++){
@@ -443,4 +480,4 @@ app.listen(14400, function () {
   }
 });
 
-process.on('uncaughtException', (err) => {});
+//process.on('uncaughtException', (err) => {});
