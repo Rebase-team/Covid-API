@@ -8,7 +8,7 @@ const queries = require('./queries');
 const tools = require('./tools');
 const tracker = require('./tracker');
 const covid = require('./covid');
-const axios = require('axios');
+
 const app = express();
 
 app.use(Waf.WafSecurityPolicy());
@@ -98,24 +98,6 @@ var geo_reserve_keys = [
 ];
 
 
-/* FUNÇÃO QUE ENVIA O ERROR PARA O BOT */
-function sendErrorMessageUsingBoot(msg){
-  // Variaveis
-    //Token
-    const TOKEN = '990027737:AAGKgApnLhnXIEeWki-sq0uvY4YQoZEFy60;' 
-    // Pegando o código de resposta 
-    const codeMsg = msg.response;
-  
-  //Logica
-    // Interando o objeto retornado para assim retornar o erro referente ao código
-    for (var [key, value] of Object.entries(API_CODES)) {
-      if(value == codeMsg) {
-        const exactMsg = `Response:${key}`
-        return axios.get(`https://api.telegram.org/${TOKEN}/sendMessage?chat_id=@gunscovid19bot&text=${exactMsg}`)
-      }
-}
-}
-
 //==============================================================================
 /* ROTAS */
 //==============================================================================
@@ -158,7 +140,7 @@ app.put('/covid/uuid/:guid', function (req, res) {
 app.post('/covid/submit/:guid/:number', function (req, res) {
   //Realiza a votação
   if (!tools.is_uuid(req.params.guid)) {
-    sendErrorMessageUsingBoot(tools.dump(res, API_CODES.UUID_INVALID, {}))
+    tools.dump(res, API_CODES.UUID_INVALID, {});
   }
   else if (!waffilter.SafetyFilter.FilterVariable(req.params.number, waffilter.SafetyFilterType.FILTER_VALIDATE_NUMBER_INT)) {
     tools.dump(res, API_CODES.VOTE_INVALID, {});
