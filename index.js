@@ -83,7 +83,8 @@ const API_CODES = {
 /* ERRO 404, ROTA NÃO ENCONTRADA! */
 const API_NOT_FOUND_ROUTE = function(req, res){
   res.status(404);
-  tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid route requested.' });
+  //tools.dump(res, API_CODES.UUID_INVALID, { message:'Invalid request, please see our docs page: https://documenter.getpostman.com/view/11185707/SzmmVvBZ?version=latest.' });
+  res.redirect('https://documenter.getpostman.com/view/11185707/SzmmVvBZ?version=latest');
   let uagent = uaparser(req.headers["user-agent"]);
   console.log(`[${(new Date()).toLocaleTimeString().cyan}] ` + `Error 404! OS: ${String(uagent.os.name).green} | `.yellow + `Arch: ${String(uagent.cpu.architecture).green} | `.yellow + `Device: ${String(uagent.device.type).green} | `.yellow + `IP Address: ${String(req.ip).red} `.yellow + `Url: ${String(req.url).cyan}`.yellow);
 }
