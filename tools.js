@@ -23,7 +23,7 @@ function debug_translate_code(errorCode){
     Msg[3]  = 'O UUID fornecido já consta na base de dados.';
     Msg[4]  = 'Falha ao inserir UUID na base de dados.';
     Msg[5]  = 'O voto ou avaliação de aglomeração fornecida é inválido.';
-    Msg[6]  = 'Você já votou, para votar novamente aguardar pela menos 1 hora.';
+    Msg[6]  = 'Você já votou, para votar novamente, aguardar pelo menos 1 hora.';
     Msg[7]  = 'Um erro ocorreu durante o voto ou avaliação.';
     Msg[8]  = 'Voto ou avaliação submetida com sucesso.';
     Msg[9]  = 'Médias calculadas e recuperadas com sucesso.';

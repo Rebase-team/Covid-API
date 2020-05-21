@@ -464,6 +464,17 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
+app.get('*', API_NOT_FOUND_ROUTE);
+app.post('*', API_NOT_FOUND_ROUTE);
+app.head('*', API_NOT_FOUND_ROUTE);
+app.options('*', API_NOT_FOUND_ROUTE);
+app.put('*', API_NOT_FOUND_ROUTE);
+app.purge('*', API_NOT_FOUND_ROUTE);
+app.patch('*', API_NOT_FOUND_ROUTE);
+app.delete('*', API_NOT_FOUND_ROUTE);
+app.copy('*', API_NOT_FOUND_ROUTE);
+app.connect('*', API_NOT_FOUND_ROUTE);
+app.propfind('*', API_NOT_FOUND_ROUTE);
 
 app.listen(14400, function () {
   console.log(`[${(new Date()).toLocaleTimeString().cyan}]` + ` GitHub: https://github.com/Rebase-team/Covid-API | Covid API running on port ${'14400'.red}.`.yellow);
@@ -476,4 +487,4 @@ app.listen(14400, function () {
   }
 });
 
-//process.on('uncaughtException', (err) => {});
+process.on('uncaughtException', (err) => {});
