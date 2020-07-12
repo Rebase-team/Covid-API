@@ -474,19 +474,23 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
+//Rota especial, não catalogada na documentação responsável por atualizar os dados do aplicativo.
+/* PARÂMETROS ->
+    :postToken -> token da postagem, presente na URL da postagem da prefeitura no instagram
+*/
 app.get('/covid/report/state/pe/garanhuns/instagram/:postToken', function(req, res){
   if (req.params.postToken){
     covid.covid_api_garanhuns_report(req.params.postToken, (response) => {
       if (!response.status){
-        res.end('Alguma coisa deu errado, não consegui obter os dados da postagem da prefeitura. Verifique se o token da postagem é válido ou se o padrão do post mudou.');
+        tools.dump(res, 0, {text: 'Alguma coisa deu errado, não consegui obter os dados da postagem da prefeitura. Verifique se o token da postagem é válido ou se o padrão do post mudou.'});
       } else {
         guns_covid_data = response.data;
         guns_covid_id++;
-        res.end('Obrigado por atualizar meus dados! Faça isso novamente amanhã. Ocorreu tudo certo, as informações já foram atualizadas no aplicativo também.');
+        tools.dump(res, 0, {text: 'Obrigado por atualizar meus dados! Faça isso novamente amanhã. Ocorreu tudo certo, as informações já foram atualizadas no aplicativo também.', data: guns_covid_data});
       }
     })
   } else{
-    res.end('Forneça o token da postagem da prefeitura de Garanhuns. Ela estará presente na URL da postagem.');
+    tools.dump(res, 0, {text: 'Forneça o token da postagem da prefeitura de Garanhuns. Ela estará presente na URL da postagem.'});
   }
 });
 
