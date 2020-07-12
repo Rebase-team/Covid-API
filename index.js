@@ -246,6 +246,7 @@ app.get('/covid/today/:guid/garanhuns', function (req, res){
 });
 
 // Rota que atualiza a posição do usuário com lat e lgn
+
 /* PARÂMETROS ->
     :guid -> número de indentificação do celular
     :lat -> latidude
@@ -444,11 +445,11 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if (uuid_exist){
         tools.dump(res, API_CODES.SHOWING_GARANHUNS_COVID_DATA, {
-          "uid": 0,
-          "cases": 0,
-          "recovered": 0,
-          "suspects": 0,
-          "deaths": 0,
+          "uid": 30,
+          "cases": 529,
+          "recovered": 327,
+          "suspects": 191,
+          "deaths": 35,
           "datetime": (new Date()).toISOString()
       });
       }
@@ -467,7 +468,6 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
 app.get('*', API_NOT_FOUND_ROUTE);
 app.post('*', API_NOT_FOUND_ROUTE);
 app.head('*', API_NOT_FOUND_ROUTE);
-app.options('*', API_NOT_FOUND_ROUTE);
 app.put('*', API_NOT_FOUND_ROUTE);
 app.purge('*', API_NOT_FOUND_ROUTE);
 app.patch('*', API_NOT_FOUND_ROUTE);

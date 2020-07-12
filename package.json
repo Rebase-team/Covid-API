@@ -16,7 +16,7 @@
     "axios": "^0.19.2",
     "colors": "^1.4.0",
     "express": "^4.17.1",
-    "mini-waf": "^0.3.92",
+    "mini-waf": "^0.4.97",
     "nodemon": "^2.0.3",
     "sqlite3": "^4.2.0",
     "ua-parser-js": "^0.7.21"
