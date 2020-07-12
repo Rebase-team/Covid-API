@@ -97,6 +97,16 @@ var geo_reserve_keys = [
   'CbZyPiHRBrlOCSTgZswXVnJxTmuaPHln'
 ];
 
+/* DADOS ATUAIS DE COVID-19 EM GARANHUNS */
+
+var guns_covid_id = 0;
+
+var guns_covid_data = {
+  "cases": 0,
+  "recovered": 0,
+  "suspects": 0,
+  "deaths": 0
+};
 
 //==============================================================================
 /* ROTAS */
@@ -444,11 +454,11 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
     queries.sqlite_check_uuid(req.params.guid, (uuid_exist) => {
       if (uuid_exist){
         tools.dump(res, API_CODES.SHOWING_GARANHUNS_COVID_DATA, {
-          "uid": 0,
-          "cases": 0,
-          "recovered": 0,
-          "suspects": 0,
-          "deaths": 0,
+          "uid": guns_covid_id,
+          "cases": guns_covid_data.cases,
+          "recovered": guns_covid_data.recovered,
+          "suspects": guns_covid_data.suspects,
+          "deaths": guns_covid_data.deaths,
           "datetime": (new Date()).toISOString()
       });
       }
@@ -464,10 +474,25 @@ app.get('/covid/report/:guid/state/pe/garanhuns', function(req, res){
   }
 });
 
+app.get('/covid/report/state/pe/garanhuns/instagram/:postToken', function(req, res){
+  if (req.params.postToken){
+    covid.covid_api_garanhuns_report(req.params.postToken, (response) => {
+      if (!response.status){
+        res.end('Alguma coisa deu errado, não consegui obter os dados da postagem da prefeitura. Verifique se o token da postagem é válido ou se o padrão do post mudou.');
+      } else {
+        guns_covid_data = response.data;
+        guns_covid_id++;
+        res.end('Obrigado por atualizar meus dados! Faça isso novamente amanhã. Ocorreu tudo certo, as informações já foram atualizadas no aplicativo também.');
+      }
+    })
+  } else{
+    res.end('Forneça o token da postagem da prefeitura de Garanhuns. Ela estará presente na URL da postagem.');
+  }
+});
+
 app.get('*', API_NOT_FOUND_ROUTE);
 app.post('*', API_NOT_FOUND_ROUTE);
 app.head('*', API_NOT_FOUND_ROUTE);
-app.options('*', API_NOT_FOUND_ROUTE);
 app.put('*', API_NOT_FOUND_ROUTE);
 app.purge('*', API_NOT_FOUND_ROUTE);
 app.patch('*', API_NOT_FOUND_ROUTE);
